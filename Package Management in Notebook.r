@@ -186,4 +186,29 @@
 
 # COMMAND ----------
 
+library(RobustGaSP)
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC mkdir /usr/lib/R/srijit_lib_test
+
+# COMMAND ----------
+
+.libPaths(c("/usr/lib/R/srijit_lib_test", .libPaths()))
+
+# COMMAND ----------
+
+install.packages("RobustGaSP")
+
+# COMMAND ----------
+
+dbutils.fs.mkdirs("/dbfs/databricks/rstudio/srijit/rlib")
+
+# COMMAND ----------
+
+system("cp -R /usr/lib/R/srijit_lib_test /dbfs/dbfs/databricks/rstudio/srijit/rlib", intern = T)
+
+# COMMAND ----------
+
 

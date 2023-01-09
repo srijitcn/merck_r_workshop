@@ -23,7 +23,7 @@ user_email <- EEE
 root_user_dbfs <- paste0(root_dbfs,"/",user_email)
 database_directory <- paste0(root_user_dbfs,"/data")
 mlflow_directory <- paste0(root_user_dbfs,"/mlflow")
-files_directory <-  paste0(root_user_dbfs,"/files")
+files_directory <-  paste0(root_dbfs,"/files")
 
 print(paste0(" Database directory: ", database_directory))
 print(paste0(" MLFlow directory: ", mlflow_directory))

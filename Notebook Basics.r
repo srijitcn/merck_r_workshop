@@ -66,7 +66,7 @@ system("ls /dbfs/rworkshop/files", intern = TRUE)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT COUNT(*) FROM default.airlines_raw
+# MAGIC SELECT current_date 
 
 # COMMAND ----------
 

@@ -128,7 +128,7 @@ dbutils.secrets.help()
 
 # COMMAND ----------
 
-airline_data <- read.csv('/dbfs/rworkshop/files/2008.csv')
+airline_data <- read.csv('/dbfs/dbfs/rworkshop/files/2008.csv')
 
 # COMMAND ----------
 

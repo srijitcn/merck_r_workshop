@@ -1,4 +1,8 @@
 # Databricks notebook source
+R.Version()
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Package Management on Databricks
 # MAGIC 
@@ -144,6 +148,9 @@
 # MAGIC If you need these libraries to be available to each worker, you can use an [init script](https://github.com/marygracemoesta/R-User-Guide/edit/master/Developing_on_Databricks/Customizing.md) or simply include it in your closure when running [user defined functions](linktocome).
 # MAGIC 
 # MAGIC ___
+# MAGIC ## Mounted EFS Drives
+# MAGIC If you have mounted EFS Drives, you can set the lib path to a mount directory folder and directly install packages. It will persist across cluster restarts
+# MAGIC 
 # MAGIC 
 # MAGIC ## Databricks Container Services
 # MAGIC 
@@ -186,16 +193,45 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC To configure R to use external package managers like RStudio (Posit) Package Manager as its CRAN repository, set the repos option to use the repository URL:
+# MAGIC 
+# MAGIC ```
+# MAGIC local({
+# MAGIC   repos <- c(PackageManager = "https://packagemanager.posit.co/cran/__linux__/centos7/latest")
+# MAGIC   repos["LocalPackages"] <- "https://packagemanager.posit.co/local/__linux__/centos7/latest"
+# MAGIC 
+# MAGIC   # add the new repositories first, but keep the existing ones
+# MAGIC   options(repos = c(repos, getOption("repos")))
+# MAGIC })
+# MAGIC # verify the current repository list
+# MAGIC getOption("repos")
+# MAGIC #                                                      PackageManager
+# MAGIC #  "https://packagemanager.posit.co/cran/__linux__/centos7/latest"
+# MAGIC #                                                       LocalPackages
+# MAGIC # "https://packagemanager.posit.co/local/__linux__/centos7/latest"
+# MAGIC #                                                                CRAN
+# MAGIC #                                       "https://cloud.r-project.org"
+# MAGIC ```
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC 
+# MAGIC Let us try out installing pacakges to a dbfs location 
+
+# COMMAND ----------
+
 library(RobustGaSP)
 
 # COMMAND ----------
 
 # MAGIC %sh
-# MAGIC mkdir /usr/lib/R/srijit_lib_test
+# MAGIC mkdir /usr/lib/R/rworkshop_lib_test
 
 # COMMAND ----------
 
-.libPaths(c("/usr/lib/R/srijit_lib_test", .libPaths()))
+.libPaths(c("/usr/lib/R/rworkshop_lib_test", .libPaths()))
 
 # COMMAND ----------
 
@@ -203,11 +239,11 @@ install.packages("RobustGaSP")
 
 # COMMAND ----------
 
-dbutils.fs.mkdirs("/dbfs/databricks/rstudio/srijit/rlib")
+dbutils.fs.mkdirs("/dbfs/databricks/rstudio/rworkshop/rlib")
 
 # COMMAND ----------
 
-system("cp -R /usr/lib/R/srijit_lib_test /dbfs/dbfs/databricks/rstudio/srijit/rlib", intern = T)
+system("cp -R /usr/lib/R/rworkshop_lib_test /dbfs/dbfs/databricks/rstudio/rworkshop/rlib", intern = T)
 
 # COMMAND ----------
 

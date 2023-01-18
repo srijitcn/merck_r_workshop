@@ -17,7 +17,7 @@
 
 #TODO Replace EEE with your email
 root_dbfs <- "/dbfs/rworkshop"
-user_email <- EEE
+user_email <- "srijit.nair@databricks.com"
 
 root_user_dbfs <- paste0(root_dbfs,"/",user_email)
 database_directory <- paste0(root_user_dbfs,"/data")
@@ -33,8 +33,8 @@ dbutils.fs.mkdirs(mlflow_directory)
 
 # COMMAND ----------
 
-data_2018 <- paste0("dbfs:/",files_directory,"/Geos20181YR.csv")
-data_2019 <- paste0("dbfs:/",files_directory,"/Geos20191YR.csv")
+data_2018 <- paste0("dbfs:",files_directory,"/Geos20181YR.csv")
+data_2019 <- paste0("dbfs:",files_directory,"/Geos20191YR.csv")
 
 # COMMAND ----------
 
@@ -45,6 +45,9 @@ sparkR.session()
 # COMMAND ----------
 
 #the repartition statement is optional.. since data size is small, it might keep in everything in driver
+data_2018 <- "dbfs:/FileStore/srijit/demo/data/Geos20181YR.csv"
+data_2019 <- "dbfs:/FileStore/srijit/demo/data/Geos20191YR.csv"
+
 df_2018 <- read.df(data_2018, source="csv",header="true", repartition=40)
 df_2019 <- read.df(data_2019, source="csv",header="true", repartition=40)
 
@@ -87,7 +90,7 @@ urb_count_2018 <- df_2018 %>%
   select(c("STUSAB","UA") ) %>% 
   groupBy("STUSAB") %>% 
   count() %>% 
-  #withColumnRenamed(existingCol="count", newCol="NUMURB_2018")
+  withColumnRenamed(existingCol="count", newCol="NUMURB_2018")
 
 # COMMAND ----------
 
@@ -101,7 +104,7 @@ urb_count_2019 <- df_2019 %>%
   select(c("STUSAB","UA") ) %>% 
   groupBy("STUSAB") %>% 
   count() %>% 
-  #withColumnRenamed(existingCol="count", newCol="NUMURB_2019")  
+  withColumnRenamed(existingCol="count", newCol="NUMURB_2019")  
 
 # COMMAND ----------
 
@@ -115,8 +118,8 @@ result <- urb_count_2018 %>%
   merge(urb_count_2019, by="STUSAB" ) %>%
   select(c("STUSAB_x","NUMURB_2018","NUMURB_2019")) %>%
   withColumn("URBAN_GROWTH", (.$NUMURB_2019 - .$NUMURB_2018)) %>%
-  #filter(.$URBAN_GROWTH != 0) %>%
-  #arrange("URBAN_GROWTH", decreasing=TRUE)
+  filter(.$URBAN_GROWTH != 0) %>%
+  arrange("URBAN_GROWTH", decreasing=TRUE)
 
 
 # COMMAND ----------
@@ -157,7 +160,7 @@ class(r_result)
 # COMMAND ----------
 
 #TODO Fill out XXX with table name Add your initials to avoid conflict eg: 'survey_result_YOUR INITIALS'
-survey_delta_table_name <- XXX
+survey_delta_table_name <- "survey_result_scn"
 
 survey_table_location <- paste0("dbfs:",database_directory, "/",survey_delta_table_name)
 
@@ -176,7 +179,7 @@ write.df(result, path=survey_table_location)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC %sql
+# MAGIC 
 # MAGIC USE CATALOG hive_metastore;
 # MAGIC USE DATABASE rworkshop;
 
@@ -200,7 +203,7 @@ sql(paste0("CREATE TABLE IF NOT EXISTS ",survey_delta_table_name," USING delta L
 
 # MAGIC %sql
 # MAGIC --TODO Replace XXX with the table name
-# MAGIC SELECT * FROM XXX
+# MAGIC SELECT * FROM survey_result_scn
 
 # COMMAND ----------
 
@@ -460,10 +463,14 @@ return_schema_dapply <- structType(
 
 result_df <- 
   dapply(
-    #iris_spark_repart, 
-    #compute_fn, 
+    iris_spark_repart, 
+    compute_fn, 
     return_schema_dapply 
   )
+
+# COMMAND ----------
+
+display(result_df)
 
 # COMMAND ----------
 
@@ -497,12 +504,12 @@ return_schema_gapply <- structType(
 display(gapply(iris_sparkDF,
                "Species",
                function(key, x) {
-                  #y <- data.frame(key, 
-                  #                mean(x$Sepal_Length), 
-                  #                mean(x$Sepal_Width),
-                  #                mean(x$Petal_Length),
-                  #                mean(x$Petal_Width), 
-                  #                stringsAsFactors = FALSE)
+                  y <- data.frame(key, 
+                                  mean(x$Sepal_Length), 
+                                  mean(x$Sepal_Width),
+                                  mean(x$Petal_Length),
+                                  mean(x$Petal_Width), 
+                                  stringsAsFactors = FALSE)
                },
                return_schema_gapply
               )

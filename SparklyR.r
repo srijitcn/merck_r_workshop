@@ -18,7 +18,7 @@
 
 #TODO Replace EEE with your email
 root_dbfs <- "/dbfs/rworkshop"
-user_email <- EEE
+user_email <- "srijit.nair@databricks.com"
 
 root_user_dbfs <- paste0(root_dbfs,"/",user_email)
 database_directory <- paste0(root_user_dbfs,"/data")
@@ -116,7 +116,7 @@ iris_spark %>%
 # COMMAND ----------
 
 #TODO Fill out XXX with temp table name. Add your initials to avoid conflict eg: 'iris_train_temp_YOUR INITIALS'
-temp_table_name = XXX
+temp_table_name = "iris_train_temp_scn"
 
 sdf_register(iris_spark, temp_table_name)
 
@@ -127,7 +127,7 @@ sdf_sql(sc,paste0("SELECT * FROM ",temp_table_name))
 # MAGIC %sql
 # MAGIC --we can also use SQL 
 # MAGIC --replace XXX with the correct name
-# MAGIC SELECT * FROM XXX;
+# MAGIC SELECT * FROM iris_train_temp_scn;
 
 # COMMAND ----------
 
@@ -144,7 +144,7 @@ sdf_sql(sc,paste0("SELECT * FROM ",temp_table_name))
 
 #TODO Fill out XXX with table name Add your initials to avoid conflict eg: 'iris_train_YOUR INITIALS'
 
-iris_delta_table_name <- XXX
+iris_delta_table_name <- "iris_train_scn"
 
 iris_table_location <- paste0("dbfs:",database_directory, "/",iris_delta_table_name)
 
@@ -168,6 +168,9 @@ spark_write_delta(iris_spark, path= iris_table_location)
 
 # MAGIC %sql
 # MAGIC USE CATALOG hive_metastore;
+# MAGIC 
+# MAGIC 
+# MAGIC CREATE SCHEMA IF NOT EXISTS rworkshop;
 # MAGIC USE DATABASE rworkshop;
 
 # COMMAND ----------
@@ -189,7 +192,46 @@ sdf_sql(sc, paste0("CREATE TABLE IF NOT EXISTS ",iris_delta_table_name," USING d
 
 # MAGIC %sql
 # MAGIC --TODO Replace XXX with the table name
-# MAGIC SELECT * FROM XXX
+# MAGIC SELECT * FROM iris_train_scn
+
+# COMMAND ----------
+
+sc
+
+# COMMAND ----------
+
+dd<-sdf_sql(sc, "SELECT * FROM iris_train_scn")
+
+# COMMAND ----------
+
+class(dd)
+
+# COMMAND ----------
+
+dd %>% count
+
+# COMMAND ----------
+
+tt <- dd %>%
+ mutate(Sepal_Width_Rnd = ROUND(Sepal_Width * 2) / 2) %>% # Bucketizing Sepal_Width
+ group_by(Species) %>% 
+ summarize(count = n(), Sepal_Width_Rnd_Avg = mean(Sepal_Width_Rnd), Sepal_Length_Avg = mean(Sepal_Length), Sepal_Length_Std = sd(Sepal_Length)) 
+
+# COMMAND ----------
+
+class(tt)
+
+# COMMAND ----------
+
+collect(tt)
+
+# COMMAND ----------
+
+object.size(collect(dd))
+
+# COMMAND ----------
+
+head(dd)
 
 # COMMAND ----------
 
@@ -312,6 +354,10 @@ mlflow_exp_id = tryCatch(
 # COMMAND ----------
 
 mlflow_exp_id
+
+# COMMAND ----------
+
+install.packages("carrier")
 
 # COMMAND ----------
 
@@ -458,3 +504,7 @@ result <- foreach(i = 1:num_sim, .combine = 'rbind') %dopar% {
 }
 
 print(paste0("Run time (minutes):", (as.numeric(Sys.time() - start_time , units = "mins"))))
+
+# COMMAND ----------
+
+
